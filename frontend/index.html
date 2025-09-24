@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyBet - Juego de Vuelo</title>
+  <!-- Enlace al CSS externo -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="game-wrapper">
+      <!-- Animated background particles -->
+      <div class="particles" id="particles"></div>
+
+      <!-- Top Navigation -->
+      <div class="top-nav">
+          <div class="brand">
+              🚀 SKYBET
+          </div>
+          <div class="user-panel">
+              <div class="wallet">
+                  💰 $<span id="userBalance">1000.00</span>
+              </div>
+              <div>👤 <span id="playerName">Piloto</span></div>
+          </div>
+      </div>
+
+      <!-- Main Game Area -->
+      <div class="game-container">
+          <!-- Flight Simulation -->
+          <div class="flight-zone">
+              <div class="flight-status">
+                  <span id="flightStatus" class="status-idle">🟡 Preparando vuelo...</span>
+              </div>
+              
+              <div class="sky-canvas">
+                  <!-- Animated clouds -->
+                  <div class="clouds" id="cloudsContainer"></div>
+                  
+                  <!-- Rocket ship -->
+                  <div id="rocketShip" class="rocket-ship">🚀</div>
+                  
+                  <!-- Center altitude display -->
+                  <div class="altitude-display">
+                      <div id="altitudeMultiplier" class="multiplier-giant">1.00x</div>
+                      <div class="altitude-text">Altitud de vuelo</div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Control Panel -->
+          <div class="control-dashboard">
+              <div class="bet-controls">
+                  <!-- Bet Slot 1 -->
+                  <div class="bet-slot">
+                      <div class="bet-header">
+                          <div class="bet-title">🎯 Apuesta Alpha</div>
+                          <div class="bet-multiplier" id="multiplier1">1.00x</div>
+                      </div>
+                      <input type="number" id="betAmount1" class="amount-input" placeholder="Monto a apostar" min="1" step="0.01" value="10">
+                      <button id="betBtn1" class="action-btn bet-btn">Apostar Alpha</button>
+                      <button id="cashBtn1" class="action-btn cashout-btn" style="display:none;">Retirar Alpha</button>
+                  </div>
+
+                  <!-- Bet Slot 2 -->
+                  <div class="bet-slot">
+                      <div class="bet-header">
+                          <div class="bet-title">⚡ Apuesta Beta</div>
+                          <div class="bet-multiplier" id="multiplier2">1.00x</div>
+                      </div>
+                      <input type="number" id="betAmount2" class="amount-input" placeholder="Monto a apostar" min="1" step="0.01" value="25">
+                      <button id="betBtn2" class="action-btn bet-btn">Apostar Beta</button>
+                      <button id="cashBtn2" class="action-btn cashout-btn" style="display:none;">Retirar Beta</button>
+                  </div>
+              </div>
+
+              <!-- Info Section -->
+              <div class="info-section">
+                  <!-- Stats -->
+                  <div class="stats-card">
+                      <div class="card-title">📊 Estadísticas</div>
+                      <div class="stat-row">
+                          <span>Vuelos totales:</span>
+                          <span class="stat-value" id="totalFlights">0</span>
+                      </div>
+                      <div class="stat-row">
+                          <span>Ganancia total:</span>
+                          <span class="stat-value" id="totalProfit">$0.00</span>
+                      </div>
+                      <div class="stat-row">
+                          <span>Mejor altitud:</span>
+                          <span class="stat-value" id="bestAltitude">0.00x</span>
+                      </div>
+                  </div>
+
+                  <!-- History -->
+                  <div class="history-card">
+                      <div class="card-title">📈 Historial de Vuelos</div>
+                      <div class="history-scroll" id="flightHistory">
+                          <!-- Dynamic content -->
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Enlace al JS externo -->
+  <script src="app.js"></script>
+</body>
+</html>

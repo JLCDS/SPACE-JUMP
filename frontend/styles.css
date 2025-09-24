@@ -1,0 +1,452 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-wrapper {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Floating particles background */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .wallet {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        /* Main Game Container */
+        .game-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 25px;
+            padding: 25px;
+            z-index: 10;
+        }
+
+        /* Flight Simulation Area */
+        .flight-zone {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sky-canvas {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(to bottom, 
+                rgba(135, 206, 250, 0.3) 0%,
+                rgba(255, 182, 193, 0.2) 50%,
+                rgba(255, 165, 0, 0.1) 100%);
+        }
+
+        .clouds {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            animation: drift 20s infinite linear;
+        }
+
+        .cloud:before,
+        .cloud:after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+        }
+
+        .cloud.small { width: 60px; height: 20px; }
+        .cloud.medium { width: 90px; height: 30px; }
+        .cloud.large { width: 120px; height: 40px; }
+
+        @keyframes drift {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(calc(100vw + 150px)); }
+        }
+
+        .rocket-ship {
+            position: absolute;
+            font-size: 50px;
+            z-index: 50;
+            transition: all 0.15s ease-out;
+            filter: drop-shadow(0 0 15px rgba(255, 107, 107, 0.8));
+            bottom: 15%;
+            left: 5%;
+        }
+
+        .altitude-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .multiplier-giant {
+            font-size: 90px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .altitude-text {
+            font-size: 18px;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.5)); }
+            to { filter: drop-shadow(0 0 30px rgba(78, 205, 196, 0.8)); }
+        }
+
+        .crashed-effect {
+            background: linear-gradient(45deg, #ff4757, #ff3742) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(-2deg); }
+            50% { transform: translate(-50%, -50%) rotate(2deg); }
+        }
+
+        .flight-status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-idle { color: #ffd700; }
+        .status-active { color: #4ecdc4; }
+        .status-crashed { color: #ff4757; }
+
+        /* Control Panel */
+        .control-dashboard {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .bet-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bet-slot {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .bet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .bet-title {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .bet-multiplier {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .amount-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .amount-input:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .bet-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .bet-btn:hover {
+            background: linear-gradient(45deg, #44a08d, #4ecdc4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(78, 205, 196, 0.4);
+        }
+
+        .cashout-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .cashout-btn:hover {
+            background: linear-gradient(45deg, #ee5a52, #ff6b6b);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .action-btn:disabled {
+            background: #666 !important;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Info Panels */
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: auto;
+        }
+
+        .stats-card, .history-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-weight: 600;
+        }
+
+        .history-scroll {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .round-number {
+            opacity: 0.7;
+        }
+
+        .round-multiplier {
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .multiplier-win {
+            background: rgba(78, 205, 196, 0.2);
+            color: #4ecdc4;
+        }
+
+        .multiplier-loss {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .game-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-nav {
+                padding: 10px 20px;
+            }
+            
+            .brand {
+                font-size: 20px;
+            }
+            
+            .game-container {
+                padding: 15px;
+            }
+            
+            .multiplier-giant {
+                font-size: 60px;
+            }
+        }
+
+        /* Win effect */
+        .win-popup {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            font-weight: 900;
+            color: #4ecdc4;
+            z-index: 1000;
+            pointer-events: none;
+            animation: winBounce 2s ease-out forwards;
+        }
+
+        @keyframes winBounce {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1) translateY(-100px);
+            }
+        }
