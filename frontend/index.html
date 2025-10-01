@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SkyBet - Juego de Vuelo</title>
+  <title>SpaceJump - Juego de Vuelo</title>
   <!-- Enlace al CSS externo -->
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -15,62 +15,84 @@
       <!-- Top Navigation -->
       <div class="top-nav">
           <div class="brand">
-              🚀 SKYBET
+              🚀 SpaceJump
           </div>
           <div class="user-panel">
               <div class="wallet">
                   💰 $<span id="userBalance">1000.00</span>
               </div>
-              <div>👤 <span id="playerName">Piloto</span></div>
+              <div class="user-info">
+                  <span>👤 <span id="playerName">Piloto</span></span>
+                  <button class="logout-btn" id="logoutBtn" title="Cerrar Sesión">🚪</button>
+              </div>
           </div>
       </div>
 
       <!-- Main Game Area -->
       <div class="game-container">
-          <!-- Flight Simulation -->
-          <div class="flight-zone">
-              <div class="flight-status">
-                  <span id="flightStatus" class="status-idle">🟡 Preparando vuelo...</span>
+          <!-- Left Column: Flight + Ranking -->
+          <div class="left-column">
+              <!-- Flight Simulation -->
+              <div class="flight-zone">
+                  <div class="flight-status">
+                      <span id="flightStatus" class="status-idle">🟡 Preparando vuelo...</span>
+                  </div>
+                  
+                  <!-- Corner Multiplier Display -->
+                  <div class="multiplier-corner">
+                      <div id="altitudeMultiplier" class="multiplier-corner-value">1.00x</div>
+                  </div>
+                  
+                  <div class="sky-canvas">
+                      <!-- Rocket trail container -->
+                      <div id="rocketTrail" class="rocket-trail"></div>
+                      
+                      <!-- Rocket ship -->
+                      <div id="rocketShip" class="rocket-ship">🚀</div>
+                  </div>
               </div>
               
-              <div class="sky-canvas">
-                  <!-- Animated clouds -->
-                  <div class="clouds" id="cloudsContainer"></div>
-                  
-                  <!-- Rocket ship -->
-                  <div id="rocketShip" class="rocket-ship">🚀</div>
-                  
-                  <!-- Center altitude display -->
-                  <div class="altitude-display">
-                      <div id="altitudeMultiplier" class="multiplier-giant">1.00x</div>
-                      <div class="altitude-text">Altitud de vuelo</div>
+              <!-- Ranking Section -->
+              <div class="ranking-section">
+                  <div class="ranking-card">
+                      <div class="card-title">🏆 Ranking de Pilotos</div>
+                      <div class="ranking-list" id="rankingList">
+                          <!-- Dynamic ranking entries will be populated here -->
+                          <div style="text-align: center; padding: 20px; opacity: 0.6;">
+                              Cargando ranking...
+                          </div>
+                      </div>
                   </div>
               </div>
           </div>
 
-          <!-- Control Panel -->
+          <!-- Right Column: Control Panel -->
           <div class="control-dashboard">
               <div class="bet-controls">
-                  <!-- Bet Slot 1 -->
+                  <!-- Single Bet Slot -->
                   <div class="bet-slot">
                       <div class="bet-header">
-                          <div class="bet-title">🎯 Apuesta Alpha</div>
-                          <div class="bet-multiplier" id="multiplier1">1.00x</div>
+                          <div class="bet-title"> Apostar</div>
                       </div>
-                      <input type="number" id="betAmount1" class="amount-input" placeholder="Monto a apostar" min="1" step="0.01" value="10">
-                      <button id="betBtn1" class="action-btn bet-btn">Apostar Alpha</button>
-                      <button id="cashBtn1" class="action-btn cashout-btn" style="display:none;">Retirar Alpha</button>
-                  </div>
-
-                  <!-- Bet Slot 2 -->
-                  <div class="bet-slot">
-                      <div class="bet-header">
-                          <div class="bet-title">⚡ Apuesta Beta</div>
-                          <div class="bet-multiplier" id="multiplier2">1.00x</div>
+                      
+                      <!-- Bet Amount Controls -->
+                      <div class="bet-amount-controls">
+                          <button class="amount-btn decrease" id="decreaseBtn">-</button>
+                          <input type="number" id="betAmount1" class="amount-input" placeholder="Monto" min="1" step="0.01" value="10" readonly>
+                          <button class="amount-btn increase" id="increaseBtn">+</button>
                       </div>
-                      <input type="number" id="betAmount2" class="amount-input" placeholder="Monto a apostar" min="1" step="0.01" value="25">
-                      <button id="betBtn2" class="action-btn bet-btn">Apostar Beta</button>
-                      <button id="cashBtn2" class="action-btn cashout-btn" style="display:none;">Retirar Beta</button>
+                      
+                      <!-- Quick Bet Values -->
+                      <div class="quick-bets">
+                          <button class="quick-bet-btn" data-amount="5">$5</button>
+                          <button class="quick-bet-btn" data-amount="10">$10</button>
+                          <button class="quick-bet-btn active" data-amount="25">$25</button>
+                          <button class="quick-bet-btn" data-amount="50">$50</button>
+                          <button class="quick-bet-btn" data-amount="100">$100</button>
+                      </div>
+                      
+                      <button id="betBtn1" class="action-btn bet-btn">Apostar</button>
+                      <button id="cashBtn1" class="action-btn cashout-btn" style="display:none;">Retirar Ganancia</button>
                   </div>
               </div>
 
@@ -80,25 +102,61 @@
                   <div class="stats-card">
                       <div class="card-title">📊 Estadísticas</div>
                       <div class="stat-row">
-                          <span>Vuelos totales:</span>
+                          <span>Vuelos:</span>
                           <span class="stat-value" id="totalFlights">0</span>
                       </div>
                       <div class="stat-row">
-                          <span>Ganancia total:</span>
+                          <span>Ganancia:</span>
                           <span class="stat-value" id="totalProfit">$0.00</span>
                       </div>
                       <div class="stat-row">
-                          <span>Mejor altitud:</span>
+                          <span>Mejor x:</span>
                           <span class="stat-value" id="bestAltitude">0.00x</span>
                       </div>
                   </div>
 
                   <!-- History -->
                   <div class="history-card">
-                      <div class="card-title">📈 Historial de Vuelos</div>
-                      <div class="history-scroll" id="flightHistory">
-                          <!-- Dynamic content -->
-                      </div>
+                      <div class="card-title">📈 Historial</div>
+                      <button class="history-btn" id="historyBtn">
+                          <span>Ver Rondas</span>
+                          <span class="history-count" id="historyCount">0</span>
+                      </button>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-overlay" id="historyModal" style="display: none;">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h3>📊 Historial de Rondas</h3>
+              <button class="modal-close" id="closeHistoryModal">✕</button>
+          </div>
+          <div class="modal-body">
+              <div class="multipliers-grid" id="multipliersGrid">
+                  <!-- Dynamic multiplier squares -->
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Ranking Modal -->
+  <div class="modal-overlay" id="rankingModal" style="display: none;">
+      <div class="modal-content ranking-modal">
+          <div class="modal-header">
+              <h3>🏆 Ranking de Pilotos</h3>
+              <button class="modal-close" id="closeRankingModal">✕</button>
+          </div>
+          <div class="modal-body">
+              <div class="ranking-list" id="rankingList">
+                  <!-- Dynamic ranking entries -->
+              </div>
+              <div class="ranking-footer">
+                  <div class="ranking-info">
+                      💡 El ranking se basa en las ganancias totales
                   </div>
               </div>
           </div>

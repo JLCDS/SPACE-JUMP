@@ -1,0 +1,502 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1a2a75 0%, #01021d 100%);
+  color: white;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 20px;
+}
+
+/* Floating particles background */
+.particles {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  top: 0;
+  left: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: float 15s infinite linear;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Brand Header */
+.brand-header {
+  text-align: center;
+  margin-bottom: 40px;
+  z-index: 10;
+  position: relative;
+}
+
+.brand-logo {
+  font-size: 48px;
+  font-weight: 900;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+.brand-subtitle {
+  font-size: 18px;
+  opacity: 0.8;
+  font-weight: 300;
+}
+
+/* Auth Container */
+.auth-container {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  max-width: 450px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Auth Forms */
+.auth-form {
+  display: none;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.auth-form.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.form-header h2 {
+  font-size: 28px;
+  margin-bottom: 8px;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.form-header p {
+  opacity: 0.8;
+  font-size: 16px;
+}
+
+/* Form Content */
+.form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.input-group input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 15px 20px;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.input-group input:focus {
+  border-color: #4ecdc4;
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.input-group input:valid {
+  border-color: #4ecdc4;
+}
+
+.input-group input.error {
+  border-color: #ff4757;
+  box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+}
+
+/* Password Wrapper */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  flex: 1;
+  padding-right: 50px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 18px;
+  transition: color 0.3s ease;
+}
+
+.toggle-password:hover {
+  color: #4ecdc4;
+}
+
+/* Input Help and Errors */
+.input-help {
+  font-size: 12px;
+  opacity: 0.7;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.input-error {
+  font-size: 12px;
+  color: #ff4757;
+  font-weight: 500;
+  min-height: 16px;
+}
+
+/* Password Requirements */
+.password-requirements {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+}
+
+.requirement {
+  margin: 4px 0;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.3s ease;
+}
+
+.requirement.valid {
+  color: #4ecdc4;
+}
+
+.requirement.invalid {
+  color: #ff4757;
+}
+
+/* Auth Button */
+.auth-btn {
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
+  border: none;
+  border-radius: 15px;
+  padding: 18px 30px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 10px;
+}
+
+.auth-btn:hover {
+  background: linear-gradient(45deg, #44a08d, #4ecdc4);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(78, 205, 196, 0.4);
+}
+
+.auth-btn:active {
+  transform: translateY(-1px);
+}
+
+.auth-btn:disabled {
+  background: #666 !important;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Form Footer */
+.form-footer {
+  text-align: center;
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-footer p {
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+.auth-link {
+  color: #4ecdc4;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+  color: #ff6b6b;
+  text-decoration: underline;
+}
+
+/* Success Message */
+.success-message {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.success-content {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 50px;
+  text-align: center;
+  max-width: 400px;
+  animation: successPop 0.5s ease-out;
+}
+
+@keyframes successPop {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.success-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: bounce 1s ease-in-out infinite alternate;
+}
+
+@keyframes bounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-10px);
+  }
+}
+
+.success-content h3 {
+  font-size: 24px;
+  margin-bottom: 15px;
+  background: linear-gradient(45deg, #4ecdc4, #ff6b6b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.success-content p {
+  opacity: 0.8;
+  margin-bottom: 30px;
+}
+
+/* Loading States */
+.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-wrapper {
+    padding: 15px;
+  }
+
+  .brand-logo {
+    font-size: 36px;
+  }
+
+  .brand-subtitle {
+    font-size: 16px;
+  }
+
+  .auth-container {
+    padding: 30px 25px;
+    max-width: 100%;
+  }
+
+  .form-header h2 {
+    font-size: 24px;
+  }
+
+  .input-group input {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .auth-btn {
+    padding: 15px 25px;
+    font-size: 14px;
+  }
+
+  .success-content {
+    padding: 40px 30px;
+    max-width: 90%;
+  }
+
+  .success-icon {
+    font-size: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-wrapper {
+    padding: 10px;
+  }
+
+  .brand-logo {
+    font-size: 28px;
+  }
+
+  .brand-subtitle {
+    font-size: 14px;
+  }
+
+  .auth-container {
+    padding: 25px 20px;
+  }
+
+  .form-header h2 {
+    font-size: 20px;
+  }
+
+  .form-header p {
+    font-size: 14px;
+  }
+
+  .input-group input {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .password-wrapper input {
+    padding-right: 45px;
+  }
+
+  .toggle-password {
+    right: 12px;
+    font-size: 16px;
+  }
+
+  .auth-btn {
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+
+  .success-content {
+    padding: 30px 20px;
+  }
+
+  .success-content h3 {
+    font-size: 20px;
+  }
+
+  .success-icon {
+    font-size: 40px;
+  }
+}
