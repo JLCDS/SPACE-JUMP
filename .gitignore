@@ -2,3 +2,8 @@ node_modules/
 mongo-rs/
 **/data/
 .env
+
+aviator-ha/mongo-rs/
+aviator-ha/**/data/
+aviator-ha/**/node_modules/
+aviator-ha/.env
