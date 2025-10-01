@@ -6,6 +6,8 @@ import { MongoClient, ReadPreference } from 'mongodb';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Redis } from 'ioredis';
 import { cfg } from './config.js';
+import mongoose from 'mongoose';
+import GameEngine from './gameEngine.js';
 
 const app = express();
 app.use(cors());
@@ -76,19 +78,82 @@ app.get('/api/bets', async (req, res) => {
   }
 });
 
+// POST cashout (debe ir después de la inicialización de app)
+// POST cashout (debe ir después de la inicialización de app y junto a los otros endpoints)
+app.post('/api/cashout', async (req, res) => {
+  try {
+    const { user, roundId } = req.body || {};
+    if (!user || !roundId) {
+      return res.status(400).json({ error: 'Datos inválidos (user, roundId)' });
+    }
+    // Buscar la apuesta activa del usuario en la ronda
+    const bet = await betsWrite.findOne({ user, roundId });
+    if (!bet) {
+      return res.status(404).json({ error: 'Apuesta no encontrada para este usuario y ronda' });
+    }
+    if (bet.cashoutMultiplier) {
+      return res.status(400).json({ error: 'Ya realizaste cashout en esta apuesta' });
+    }
+    // Validar que la ronda sigue en vuelo (no crash)
+    const Round = mongoose.models.Round || mongoose.model('Round');
+    const round = await Round.findOne({ roundId });
+    if (!round || round.state !== 'in_flight') {
+      return res.status(400).json({ error: 'No se puede hacer cashout en este momento' });
+    }
+    // Obtener el multiplicador actual (del GameEngine)
+    // NOTA: Para máxima precisión, deberías guardar el tiempo de inicio de in_flight y calcular el multiplicador según el tiempo transcurrido.
+    // Aquí se usa un valor fijo como ejemplo.
+    const multiplier = 1000; // Valor fijo (1.000x) por ahora
+    await betsWrite.updateOne(
+      { _id: bet._id },
+      { $set: { cashoutMultiplier: multiplier, cashoutAt: new Date() } }
+    );
+    const updatedBet = { ...bet, cashoutMultiplier: multiplier, cashoutAt: new Date() };
+    io.emit('bet:cashout', updatedBet);
+    res.json({ ok: true, betId: bet._id, cashoutMultiplier: multiplier });
+  } catch (e) {
+    console.error('POST /api/cashout', e);
+    res.status(500).json({ error: 'Error en cashout' });
+  }
+});
+
 io.on('connection', (socket) => {
   console.log(`[${cfg.SERVICE_NAME}] WS conectado ${socket.id}`);
   socket.emit('hello', { msg: `Conectado a ${cfg.SERVICE_NAME}`, when: new Date().toISOString() });
+  // Enviar estado actual de la ronda al conectar
+  const gameEngine = global.__gameEngine;
+  if (gameEngine && gameEngine.round) {
+    const payload = {
+      state: gameEngine.state,
+      roundId: gameEngine.round.roundId,
+      crashPoint: gameEngine.round.crashPoint ? gameEngine.round.crashPoint / 1000 : undefined,
+    };
+    socket.emit('round:update', payload);
+  }
   socket.on('disconnect', (reason) => {
     console.log(`[${cfg.SERVICE_NAME}] WS desconectado ${socket.id} (${reason})`);
   });
 });
 
-initDb().then(() => {
+async function startServer() {
+  await initDb();
+  // Conexión de mongoose para gameEngine (usa la misma URI)
+  await mongoose.connect(cfg.MONGO_URI, { readPreference: 'primary' });
+  // Inicializar GameEngine solo en el coordinador (ejemplo: backend1)
+  let gameEngine;
+  if (cfg.SERVICE_NAME === 'backend1') {
+    gameEngine = new GameEngine(io, true); // Coordinador
+    console.log('GameEngine iniciado como coordinador');
+  } else {
+    gameEngine = new GameEngine(io, false); // Solo escucha eventos
+    console.log('GameEngine iniciado como seguidor');
+  }
   httpServer.listen(cfg.PORT, () => {
     console.log(`[${cfg.SERVICE_NAME}] escuchando en ${cfg.PORT}`);
   });
-}).catch((err) => {
+}
+
+startServer().catch((err) => {
   console.error('DB init failed', err);
   process.exit(1);
 });
