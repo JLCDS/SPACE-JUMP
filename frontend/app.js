@@ -1,4 +1,297 @@
-    // Game state variables
+const socket = io('http://localhost:3001'); // Puerto correcto del backend
+
+// Eventos básicos de conexión
+socket.on('connect', () => {
+    console.log('✅ Conectado al servidor');
+    
+    // Enviar información del usuario al conectarse
+    if (currentUser) {
+        socket.emit('user:join', {
+            username: currentUser.username,
+            balance: playerBalance,
+            betting: false
+        });
+    } else {
+        // Usuario temporal para desarrollo
+        socket.emit('user:join', {
+            username: 'Piloto',
+            balance: playerBalance,
+            betting: false
+        });
+    }
+});
+
+socket.on('disconnect', () => {
+    console.log('❌ Desconectado del servidor');
+});
+
+// Escuchar actualizaciones del juego
+socket.on('round:update',         // Execute cashout - Solo envía evento al servidor
+        function executeCashout() {
+            if (gamePhase !== 'in_flight') {
+                alert('⚠️ No puedes hacer cashout ahora');
+                return;
+            }
+            
+            if (!betActive) {
+                alert('⚠️ No tienes ninguna apuesta activa');
+                return;
+            }
+
+            // Enviar cashout al servidor - el servidor calculará las ganancias
+            socket.emit('bet:cashout', {
+                username: currentUser?.username || 'Piloto',
+                multiplier: currentAltitude
+            });
+            
+            console.log('💰 Enviando cashout al servidor en:', currentAltitude.toFixed(3) + 'x');
+        }
+
+        // Execute cancel bet - Solo envía evento al servidor
+        function executeCancelBet() {
+            if (gamePhase !== 'betting_open') {
+                alert('⚠️ No puedes cancelar la apuesta ahora');
+                return;
+            }
+            
+            if (!betActive) {
+                alert('⚠️ No tienes ninguna apuesta activa para cancelar');
+                return;
+            }
+
+            // Confirmar cancelación
+            if (!confirm('¿Estás seguro de que quieres cancelar tu apuesta?')) {
+                return;
+            }
+
+            // Enviar cancelación al servidor
+            socket.emit('bet:cancel', {
+                username: currentUser?.username || 'Piloto'
+            });
+            
+            console.log('❌ Enviando cancelación de apuesta al servidor');
+        }sole.log('🎮 Estado del juego:', data);
+    updateGameState(data);
+});
+
+socket.on('round:crash', (data) => {
+    console.log('💥 Crash en:', data.crashPoint + 'x');
+    handleCrash(data);
+});
+
+// Escuchar lista de usuarios conectados
+socket.on('users:list', (users) => {
+    console.log('👥 Usuarios conectados:', users);
+    updateUsersList(users);
+});
+
+// Escuchar cuando un usuario se conecta
+socket.on('user:connected', (user) => {
+    console.log('✅ Usuario conectado:', user.username);
+});
+
+// Escuchar cuando un usuario se desconecta
+socket.on('user:disconnected', (user) => {
+    console.log('❌ Usuario desconectado:', user.username);
+});
+
+// Eventos de apuestas del servidor
+socket.on('bet:placed', (data) => {
+    console.log('🎯 Apuesta colocada:', data);
+    if (data.success) {
+        betActive = true;
+        betValue = data.amount;
+        playerBalance = data.newBalance;
+        updateDisplay();
+    } else {
+        alert('❌ Error al colocar apuesta: ' + data.message);
+    }
+});
+
+socket.on('bet:cashout', (data) => {
+    console.log('💰 Cashout realizado:', data);
+    if (data.success) {
+        betActive = false;
+        playerBalance = data.newBalance;
+        gameStatistics.totalProfit += data.profit;
+        updateDisplay();
+        displayWinEffect(data.profit);
+    }
+});
+
+socket.on('balance:update', (data) => {
+    console.log('💰 Balance actualizado:', data);
+    playerBalance = data.balance;
+    updateDisplay();
+});
+
+// Evento de cancelación de apuesta
+socket.on('bet:cancelled', (data) => {
+    console.log('❌ Apuesta cancelada:', data);
+    if (data.success) {
+        betActive = false;
+        playerBalance = data.newBalance;
+        updateDisplay();
+        
+        // Mostrar mensaje de cancelación
+        alert(`✅ Apuesta cancelada. Se devolvieron $${data.refundedAmount.toFixed(2)} a tu balance.`);
+    } else {
+        alert('❌ Error al cancelar apuesta: ' + data.message);
+    }
+});
+
+// Funciones para actualizar la UI basado en datos del servidor
+function updateGameState(data) {
+    // Actualizar estado del vuelo
+    const statusElement = document.getElementById('flightStatus');
+    const multiplierElement = document.getElementById('altitudeMultiplier');
+    
+    // Actualizar fase del juego local solo para UI
+    if (data.state) {
+        gamePhase = data.state;
+        const statusMap = {
+            'waiting': '🟡 Preparando vuelo...',
+            'betting_open': '🟢 ¡Apuestas abiertas!',
+            'betting_closed': '🟠 Apuestas cerradas',
+            'in_flight': '🚀 Vuelo en progreso',
+            'crash': '💥 ¡Crash!',
+            'settlement': '📊 Liquidando...'
+        };
+        statusElement.textContent = statusMap[data.state];
+        statusElement.className = `status-${data.state}`;
+        
+        // Controlar UI de apuestas basado en estado del servidor
+        updateBettingUI(data.state);
+    }
+    
+    if (data.multiplier) {
+        currentAltitude = data.multiplier;
+        multiplierElement.textContent = data.multiplier.toFixed(3) + 'x';
+        
+        // Animar cohete basado en datos del servidor
+        if (data.state === 'in_flight') {
+            animateRocket(data.multiplier);
+            createRocketTrail();
+        }
+    }
+    
+    // Actualizar información de la ronda si está disponible
+    if (data.roundId) {
+        console.log('Round ID:', data.roundId);
+    }
+}
+
+function handleCrash(data) {
+    // Mostrar el crash final
+    const multiplierElement = document.getElementById('altitudeMultiplier');
+    multiplierElement.textContent = data.crashPoint.toFixed(3) + 'x';
+    multiplierElement.style.color = 'red';
+    multiplierElement.classList.add('crashed-effect');
+    
+    // Crear animación de crash
+    createCrashAnimation();
+    
+    // Agregar a historial local
+    flightHistory.unshift(data.crashPoint);
+    if (flightHistory.length > 20) flightHistory.pop();
+    
+    // Actualizar estadísticas locales
+    gameStatistics.totalFlights++;
+    if (data.crashPoint > gameStatistics.bestAltitude) {
+        gameStatistics.bestAltitude = data.crashPoint;
+    }
+    
+    // Resetear color y efectos después de animación
+    setTimeout(() => {
+        multiplierElement.style.color = '';
+        multiplierElement.classList.remove('crashed-effect');
+        resetRocketPosition();
+    }, 2000);
+    
+    // Actualizar display
+    updateDisplay();
+}
+
+// Función para controlar UI de apuestas basado en estado del servidor
+function updateBettingUI(gameState) {
+    const betBtn = document.getElementById('betBtn1');
+    const cashBtn = document.getElementById('cashBtn1');
+    const cancelBtn = document.getElementById('cancelBtn1');
+    const betAmount = document.getElementById('betAmount1');
+    
+    switch(gameState) {
+        case 'waiting':
+        case 'betting_open':
+            // Permitir apuestas o cancelar si ya apostó
+            if (betActive) {
+                betBtn.style.display = 'none';
+                cashBtn.style.display = 'none';
+                cancelBtn.style.display = 'block';
+            } else {
+                betBtn.style.display = 'block';
+                cashBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+            }
+            betAmount.disabled = betActive;
+            break;
+            
+        case 'betting_closed':
+            // No permitir nuevas apuestas ni cancelar
+            betBtn.style.display = 'none';
+            cashBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            betAmount.disabled = true;
+            break;
+            
+        case 'in_flight':
+            // Mostrar botón de cashout si hay apuesta activa
+            betBtn.style.display = 'none';
+            cashBtn.style.display = betActive ? 'block' : 'none';
+            cancelBtn.style.display = 'none';
+            betAmount.disabled = true;
+            break;
+            
+        case 'crash':
+        case 'settlement':
+            // Ocultar todos los botones durante liquidación
+            betBtn.style.display = 'none';
+            cashBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            betAmount.disabled = true;
+            break;
+    }
+}
+
+// Función para resetear posición del cohete
+function resetRocketPosition() {
+    const rocket = document.getElementById('rocketShip');
+    const trail = document.getElementById('rocketTrail');
+    
+    rocket.style.left = '5%';
+    rocket.style.bottom = '15%';
+    rocket.style.transform = 'rotate(0deg) scale(1)';
+    rocket.classList.remove('rocket-crash');
+    
+    // Limpiar trail
+    if (trail) {
+        trail.innerHTML = '';
+    }
+}
+
+// Función para animar cohete basado en multiplicador del servidor
+function animateRocket(multiplier) {
+    const rocket = document.getElementById('rocketShip');
+    if (!rocket) return;
+    
+    const progress = Math.min((multiplier - 1) * 15, 75);
+    const verticalProgress = Math.min((multiplier - 1) * 10, 60);
+    
+    rocket.style.left = progress + '%';
+    rocket.style.bottom = (15 + verticalProgress) + '%';
+    rocket.style.transform = `rotate(${progress * 0.4}deg) scale(${1 + progress * 0.005})`;
+}
+
+// Game state variables
         let gamePhase = 'waiting'; // waiting, flying, crashed
         let currentAltitude = 1.00;
         let flightHistory = [];
@@ -11,6 +304,7 @@
             bestAltitude: 0
         };
         let currentUser = null;
+        let connectedUsers = []; // Lista de usuarios conectados
 
         // Check authentication and load user data
         function checkAuthentication() {
@@ -67,6 +361,7 @@
             userBalance: document.getElementById('userBalance'),
             betBtn1: document.getElementById('betBtn1'),
             cashBtn1: document.getElementById('cashBtn1'),
+            cancelBtn1: document.getElementById('cancelBtn1'),
             betAmount1: document.getElementById('betAmount1'),
             decreaseBtn: document.getElementById('decreaseBtn'),
             increaseBtn: document.getElementById('increaseBtn'),
@@ -83,7 +378,11 @@
             // Ranking elements
             rankingList: document.getElementById('rankingList'),
             rankingModal: document.getElementById('rankingModal'),
-            closeRankingModal: document.getElementById('closeRankingModal')
+            rankingModalList: document.getElementById('rankingModalList'),
+            closeRankingModal: document.getElementById('closeRankingModal'),
+            // Users list elements
+            usersList: document.getElementById('usersList'),
+            onlineCount: document.getElementById('onlineCount')
         };
 
         // Initialize game
@@ -97,7 +396,9 @@
             createSkyParticles();
             updateDisplay();
             attachEventHandlers();
-            startGameLoop();
+            
+            // El juego ahora se controla desde el servidor via Socket.IO
+            console.log('🎮 Cliente listo - esperando eventos del servidor...');
         }
 
         // Create floating particles
@@ -369,10 +670,10 @@
 
         function updateRankingModal() {
             const ranking = generateRanking();
-            refs.rankingList.innerHTML = '';
+            refs.rankingModalList.innerHTML = '';
             
             if (ranking.length === 0) {
-                refs.rankingList.innerHTML = '<div style="text-align: center; padding: 40px; opacity: 0.6;">No hay jugadores registrados</div>';
+                refs.rankingModalList.innerHTML = '<div style="text-align: center; padding: 40px; opacity: 0.6;">No hay jugadores registrados</div>';
                 return;
             }
 
@@ -420,7 +721,54 @@
                     <div class="ranking-profit ${player.profit < 0 ? 'negative' : ''}">${player.profit >= 0 ? '+' : ''}$${player.profit.toFixed(2)}</div>
                 `;
                 
-                refs.rankingList.appendChild(entry);
+                refs.rankingModalList.appendChild(entry);
+            });
+        }
+
+        // Users List Functions
+        function updateUsersList(users) {
+            connectedUsers = users;
+            refs.usersList.innerHTML = '';
+            refs.onlineCount.textContent = `(${users.length})`;
+            
+            if (users.length === 0) {
+                refs.usersList.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.6;">No hay usuarios conectados</div>';
+                return;
+            }
+
+            users.forEach((user, index) => {
+                const userEntry = document.createElement('div');
+                userEntry.className = 'user-entry';
+                
+                // Highlight current user
+                if (currentUser && user.username === currentUser.username) {
+                    userEntry.classList.add('current-user');
+                }
+                
+                // User status indicators
+                let statusIndicator = '🟢'; // Online
+                let userAvatar = '👤';
+                
+                // Determine avatar based on user activity or status
+                if (user.betting) {
+                    statusIndicator = '🎯'; // Currently betting
+                    userAvatar = '🚀';
+                } else if (user.balance > 5000) {
+                    userAvatar = '💎'; // High roller
+                } else if (user.balance > 2000) {
+                    userAvatar = '⭐'; // Medium player
+                }
+                
+                userEntry.innerHTML = `
+                    <div class="user-status">${statusIndicator}</div>
+                    <div class="user-avatar">${userAvatar}</div>
+                    <div class="user-info">
+                        <div class="user-name">${user.username}</div>
+                        <div class="user-balance">$${user.balance ? user.balance.toFixed(2) : '0.00'}</div>
+                    </div>
+                `;
+                
+                refs.usersList.appendChild(userEntry);
             });
         }
 
@@ -428,6 +776,7 @@
         function attachEventHandlers() {
             refs.betBtn1.addEventListener('click', () => executeBet());
             refs.cashBtn1.addEventListener('click', () => executeCashout());
+            refs.cancelBtn1.addEventListener('click', () => executeCancelBet());
             
             // Amount control handlers
             refs.decreaseBtn.addEventListener('click', () => adjustBetAmount(-1));
@@ -467,44 +816,53 @@
             }
         }
 
-        // Execute bet
+        // Execute bet - Solo envía evento al servidor
         function executeBet() {
-            if (gamePhase !== 'waiting') return;
-
-            const betAmount = parseFloat(document.getElementById('betAmount1').value);
-            
-            if (betAmount <= 0 || betAmount > playerBalance) {
-                alert('⚠️ Monto de apuesta inválido');
+            if (gamePhase !== 'betting_open') {
+                alert('⚠️ No se pueden colocar apuestas en este momento');
                 return;
             }
 
-            betActive = true;
-            betValue = betAmount;
-            refs.betBtn1.style.display = 'none';
-            refs.betAmount1.disabled = true;
+            const betAmount = parseFloat(document.getElementById('betAmount1').value);
+            
+            if (betAmount <= 0) {
+                alert('⚠️ Monto de apuesta inválido');
+                return;
+            }
+            
+            if (betAmount > playerBalance) {
+                alert('⚠️ Balance insuficiente');
+                return;
+            }
 
-            playerBalance -= betAmount;
-            updateDisplay();
+            // Enviar apuesta al servidor - el servidor decidirá si es válida
+            socket.emit('bet:place', {
+                amount: betAmount,
+                username: currentUser?.username || 'Piloto'
+            });
+            
+            console.log('🎯 Enviando apuesta al servidor:', betAmount);
         }
 
-        // Execute cashout
+        // Execute cashout - Solo envía evento al servidor
         function executeCashout() {
-            if (gamePhase !== 'flying') return;
-
-            let winnings = 0;
+            if (gamePhase !== 'in_flight') {
+                alert('⚠️ No se puede retirar en este momento');
+                return;
+            }
             
-            if (betActive) {
-                winnings = betValue * currentAltitude;
-                betActive = false;
-                refs.cashBtn1.style.display = 'none';
-                gameStatistics.totalProfit += winnings;
+            if (!betActive) {
+                alert('⚠️ No tienes ninguna apuesta activa');
+                return;
             }
 
-            if (winnings > 0) {
-                playerBalance += winnings;
-                updateDisplay();
-                displayWinEffect(winnings);
-            }
+            // Enviar cashout al servidor - el servidor calculará las ganancias
+            socket.emit('bet:cashout', {
+                username: currentUser?.username || 'Piloto',
+                multiplier: currentAltitude
+            });
+            
+            console.log('💰 Enviando cashout al servidor en:', currentAltitude.toFixed(3) + 'x');
         }
 
         // Display win effect
@@ -518,80 +876,9 @@
             setTimeout(() => winElement.remove(), 2000);
         }
 
-        // Main game loop
-        function startGameLoop() {
-            setTimeout(() => {
-                if (betActive) {
-                    initiateFlight();
-                } else {
-                    prepareNextRound();
-                }
-            }, 4000);
-        }
-
-        // Initiate flight
-        function initiateFlight() {
-            gamePhase = 'flying';
-            currentAltitude = 1.00;
-            
-            refs.flightStatus.innerHTML = '🟢 ¡Vuelo en progreso!';
-            refs.flightStatus.className = 'status-active';
-            
-            // Show cashout button
-            if (betActive) refs.cashBtn1.style.display = 'block';
-            
-            // Trail generation interval
-            let trailInterval = setInterval(() => {
-                if (gamePhase === 'flying') {
-                    createRocketTrail();
-                } else {
-                    clearInterval(trailInterval);
-                }
-            }, 100); // Create trail every 100ms
-            
-            // Flight simulation
-            const flightInterval = setInterval(() => {
-                currentAltitude += 0.01;
-                updateAltitude();
-                animateRocket();
-                
-                // Crash probability calculation
-                const crashProbability = Math.random();
-                const baseCrashChance = 0.004;
-                const altitudeFactor = (currentAltitude - 1) * 0.008;
-                
-                if (crashProbability < baseCrashChance + altitudeFactor) {
-                    clearInterval(flightInterval);
-                    clearInterval(trailInterval);
-                    executeCrash();
-                }
-                
-                // Maximum altitude limit
-                if (currentAltitude >= 50) {
-                    clearInterval(flightInterval);
-                    clearInterval(trailInterval);
-                    executeCrash();
-                }
-            }, 120);
-        }
-
-        // Update altitude display
-        function updateAltitude() {
-            refs.altitudeMultiplier.textContent = currentAltitude.toFixed(2) + 'x';
-            refs.altitudeMultiplier.classList.remove('crashed-effect');
-        }
-
-        // Animate rocket
-        function animateRocket() {
-            const progress = Math.min((currentAltitude - 1) * 15, 75);
-            const verticalProgress = Math.min((currentAltitude - 1) * 10, 60);
-            
-            refs.rocketShip.style.left = progress + '%';
-            refs.rocketShip.style.bottom = (15 + verticalProgress) + '%';
-            refs.rocketShip.style.transform = `rotate(${progress * 0.4}deg) scale(${1 + progress * 0.005})`;
-        }
-
-        // Create crash animation effects
+        // FUNCIONES DE UI - Solo para mostrar datos del servidor
+        
+        // Crear animación de explosión cuando el servidor envía crash
         function createCrashAnimation() {
             const rocketRect = refs.rocketShip.getBoundingClientRect();
             const skyRect = refs.skyCanvas.getBoundingClientRect();
@@ -668,73 +955,58 @@
                 }
             }, 1200);
         }
-
-        // Execute crash
-        function executeCrash() {
-            gamePhase = 'crashed';
+        
+        // Crear trail del cohete durante el vuelo
+        function createRocketTrail() {
+            const rocketRect = refs.rocketShip.getBoundingClientRect();
+            const skyRect = refs.skyCanvas.getBoundingClientRect();
             
-            // Trigger crash animation
-            createCrashAnimation();
+            // Calculate relative position
+            const relativeX = rocketRect.left - skyRect.left + (rocketRect.width / 2);
+            const relativeY = rocketRect.top - skyRect.top + (rocketRect.height / 2);
             
-            refs.flightStatus.innerHTML = '🔴 ¡Nave derribada!';
-            refs.flightStatus.className = 'status-crashed';
-            refs.altitudeMultiplier.classList.add('crashed-effect');
+            // Create trail particles
+            const particleTypes = ['small', 'medium', 'large'];
+            const numParticles = 3;
             
-            // Hide cashout button
-            refs.cashBtn1.style.display = 'none';
-            
-            // Process loss
-            if (betActive) {
-                gameStatistics.totalProfit -= betValue;
-                betActive = false;
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                particle.className = `trail-particle ${particleTypes[Math.floor(Math.random() * particleTypes.length)]}`;
+                
+                // Position particles behind the rocket with some randomness
+                const offsetX = Math.random() * 20 - 30; // Behind the rocket
+                const offsetY = Math.random() * 16 - 8; // Some vertical spread
+                
+                particle.style.left = (relativeX + offsetX) + 'px';
+                particle.style.top = (relativeY + offsetY) + 'px';
+                
+                refs.rocketTrail.appendChild(particle);
+                
+                // Remove particle after animation
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1000);
             }
-            
-            // Update statistics
-            gameStatistics.totalFlights++;
-            if (currentAltitude > gameStatistics.bestAltitude) {
-                gameStatistics.bestAltitude = currentAltitude;
-            }
-            
-            // Add to history
-            flightHistory.unshift(currentAltitude);
-            if (flightHistory.length > 20) flightHistory.pop(); // Keep last 20 rounds
-            
-            updateDisplay();
-            
-            setTimeout(prepareNextRound, 4000);
         }
 
-        // Prepare next round
-        function prepareNextRound() {
-            gamePhase = 'waiting';
-            currentAltitude = 1.00;
+        // Limpiar trail del cohete
+        function clearRocketTrail() {
+            if (refs.rocketTrail) {
+                refs.rocketTrail.innerHTML = '';
+            }
+        }
+
+        // Mostrar efecto de ganancia
+        function displayWinEffect(amount) {
+            const winElement = document.createElement('div');
+            winElement.className = 'win-popup';
+            winElement.textContent = `+$${amount.toFixed(2)}`;
             
-            // Clear rocket trail
-            clearRocketTrail();
+            document.querySelector('.sky-canvas').appendChild(winElement);
             
-            // Reset UI
-            refs.flightStatus.innerHTML = '🟡 Preparando vuelo...';
-            refs.flightStatus.className = 'status-idle';
-            refs.altitudeMultiplier.textContent = '1.00x';
-            refs.altitudeMultiplier.classList.remove('crashed-effect');
-            refs.rocketShip.style.left = '5%';
-            refs.rocketShip.style.bottom = '15%';
-            refs.rocketShip.style.transform = 'rotate(0deg) scale(1)';
-            
-            // Reset rocket crash animation
-            refs.rocketShip.classList.remove('rocket-crash');
-            
-            // Enable controls
-            refs.betBtn1.style.display = 'block';
-            refs.betAmount1.disabled = false;
-            refs.decreaseBtn.disabled = false;
-            refs.increaseBtn.disabled = false;
-            
-            // Enable quick bet buttons
-            const quickBetBtns = document.querySelectorAll('.quick-bet-btn');
-            quickBetBtns.forEach(btn => btn.disabled = false);
-            
-            startGameLoop();
+            setTimeout(() => winElement.remove(), 2000);
         }
 
         // Update display
@@ -747,6 +1019,11 @@
             
             // Update ranking display
             updateRankingDisplay();
+            
+            // Update users list with current data
+            if (connectedUsers.length > 0) {
+                updateUsersList(connectedUsers);
+            }
             
             // Save progress after updating display
             saveUserProgress();

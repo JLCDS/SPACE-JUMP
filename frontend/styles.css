@@ -805,6 +805,17 @@
             box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
         }
 
+        .cancel-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: linear-gradient(45deg, #c0392b, #e74c3c);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(231, 76, 60, 0.4);
+        }
+
         .action-btn:disabled {
             background: #666 !important;
             cursor: not-allowed;
@@ -1361,12 +1372,13 @@
             }
             
             .ranking-section {
-                min-height: 200px;
+                min-height: 300px;
                 flex-shrink: 0;
             }
             
             .ranking-section .ranking-list {
-                max-height: 150px;
+                max-height: 100px;
+                min-height: 80px;
             }
             
             .ranking-section .ranking-entry {
@@ -1858,5 +1870,152 @@
             100% {
                 opacity: 0;
                 transform: translate(-50%, -50%) scale(1) translateY(-100px);
+            }
+        }
+
+        /* Users List Styles */
+        .ranking-users-container {
+            display: flex;
+            gap: 15px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .left-panel, .right-panel {
+            flex: 1;
+            min-width: 0; /* Permite que los paneles se reduzcan */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .left-panel .ranking-list, 
+        .right-panel .users-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .users-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .user-entry {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            gap: 10px;
+        }
+
+        .user-entry:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(2px);
+        }
+
+        .user-entry.current-user {
+            background: rgba(76, 205, 196, 0.2);
+            border-color: #4ecdc4;
+            box-shadow: 0 0 10px rgba(76, 205, 196, 0.3);
+        }
+
+        .user-status {
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .user-avatar {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-balance {
+            font-size: 11px;
+            color: #4ecdc4;
+            font-weight: 500;
+        }
+
+        .online-count {
+            font-size: 12px;
+            color: #4ecdc4;
+            font-weight: 500;
+        }
+
+        /* Responsive adjustments for users list */
+        @media (max-width: 768px) {
+            .ranking-users-container {
+                flex-direction: column;
+                gap: 10px;
+                height: auto;
+            }
+            
+            .left-panel {
+                flex: none;
+                max-height: 180px;
+            }
+            
+            .right-panel {
+                flex: none;
+                max-height: 180px;
+            }
+            
+            .users-list {
+                max-height: 120px;
+            }
+            
+            .user-entry {
+                padding: 6px 10px;
+                gap: 8px;
+            }
+            
+            .user-name {
+                font-size: 12px;
+            }
+            
+            .user-balance {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .ranking-users-container {
+                gap: 8px;
+            }
+            
+            .left-panel {
+                max-height: 150px;
+            }
+            
+            .right-panel {
+                max-height: 150px;
+            }
+            
+            .users-list {
+                max-height: 100px;
+            }
+            
+            .user-entry {
+                padding: 5px 8px;
+                gap: 6px;
             }
         }

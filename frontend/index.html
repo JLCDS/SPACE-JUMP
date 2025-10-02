@@ -54,12 +54,30 @@
               
               <!-- Ranking Section -->
               <div class="ranking-section">
-                  <div class="ranking-card">
-                      <div class="card-title">🏆 Ranking de Pilotos</div>
-                      <div class="ranking-list" id="rankingList">
-                          <!-- Dynamic ranking entries will be populated here -->
-                          <div style="text-align: center; padding: 20px; opacity: 0.6;">
-                              Cargando ranking...
+                  <!-- Container for side-by-side layout -->
+                  <div class="ranking-users-container">
+                      <!-- Ranking on the left -->
+                      <div class="ranking-card left-panel">
+                          <div class="card-title">🏆 Ranking de Pilotos</div>
+                          <div class="ranking-list" id="rankingList">
+                              <!-- Dynamic ranking entries will be populated here -->
+                              <div style="text-align: center; padding: 20px; opacity: 0.6;">
+                                  Cargando ranking...
+                              </div>
+                          </div>
+                      </div>
+                      
+                      <!-- Users on the right -->
+                      <div class="ranking-card right-panel">
+                          <div class="card-title">
+                              👥 Usuarios en Sala 
+                              <span class="online-count" id="onlineCount">(0)</span>
+                          </div>
+                          <div class="users-list" id="usersList">
+                              <!-- Dynamic user entries will be populated here -->
+                              <div style="text-align: center; padding: 20px; opacity: 0.6;">
+                                  Cargando usuarios...
+                              </div>
                           </div>
                       </div>
                   </div>
@@ -93,6 +111,7 @@
                       
                       <button id="betBtn1" class="action-btn bet-btn">Apostar</button>
                       <button id="cashBtn1" class="action-btn cashout-btn" style="display:none;">Retirar Ganancia</button>
+                      <button id="cancelBtn1" class="action-btn cancel-btn" style="display:none;">Cancelar Apuesta</button>
                   </div>
               </div>
 
@@ -151,7 +170,7 @@
               <button class="modal-close" id="closeRankingModal">✕</button>
           </div>
           <div class="modal-body">
-              <div class="ranking-list" id="rankingList">
+              <div class="ranking-list" id="rankingModalList">
                   <!-- Dynamic ranking entries -->
               </div>
               <div class="ranking-footer">
@@ -163,6 +182,8 @@
       </div>
   </div>
 
+  <!-- Socket.IO CDN -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <!-- Enlace al JS externo -->
   <script src="app.js"></script>
 </body>

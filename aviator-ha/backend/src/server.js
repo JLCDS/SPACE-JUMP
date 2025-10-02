@@ -22,10 +22,16 @@ const io = new Server(httpServer, {
   cors: { origin: "*", methods: ["GET","POST"] }
 });
 
-// Redis adapter
-const pub = new Redis({ host: cfg.REDIS_HOST, port: cfg.REDIS_PORT });
-const sub = pub.duplicate();
-io.adapter(createAdapter(pub, sub));
+// Redis adapter (opcional)
+let pub, sub;
+try {
+  pub = new Redis({ host: cfg.REDIS_HOST, port: cfg.REDIS_PORT });
+  sub = pub.duplicate();
+  io.adapter(createAdapter(pub, sub));
+  console.log('[Server] Redis adapter configurado');
+} catch (error) {
+  console.log('[Server] Redis no disponible, funcionando sin adapter distribuido');
+}
 
 // Mongo: write (PRIMARY) / read (secondaryPreferred)
 const writeClient = new MongoClient(cfg.MONGO_URI);
@@ -148,6 +154,10 @@ async function startServer() {
     gameEngine = new GameEngine(io, false); // Solo escucha eventos
     console.log('GameEngine iniciado como seguidor');
   }
+  
+  // Hacer GameEngine global para acceso desde sockets
+  global.__gameEngine = gameEngine;
+  
   httpServer.listen(cfg.PORT, () => {
     console.log(`[${cfg.SERVICE_NAME}] escuchando en ${cfg.PORT}`);
   });
