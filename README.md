@@ -3,9 +3,10 @@
 
 ## Project Information  
 **Developed by:**  
-- Juan David López Castro – Code. 202023451  
-- [Agregar otros integrantes si aplica]  
-
+- Mileth Martinez
+- Oscar Gonzales
+- Juan López
+  
 **Institution:**  
 Universidad Pedagógica y Tecnológica de Colombia  
 Faculty of Engineering  
